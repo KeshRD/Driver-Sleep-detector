@@ -4,15 +4,33 @@ import numpy as np
 from scipy.spatial import distance as dist
 from imutils import face_utils
 import time
-from pygame import mixer
+import os
+import requests  # For downloading the .dat file
 
-mixer.init()
-mixer.music.load("alarm.mp3")
+# Function to download the .dat file if it doesn't exist
+def download_dat_file():
+    url = "http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2"
+    file_path = "shape_predictor_68_face_landmarks.dat"
+
+    if not os.path.exists(file_path):
+        print("Downloading shape_predictor_68_face_landmarks.dat...")
+        response = requests.get(url)
+        if response.status_code == 200:
+            with open(file_path, "wb") as f:
+                f.write(response.content)
+            print("Download complete.")
+        else:
+            print("Failed to download the file.")
+            exit()
+    else:
+        print("shape_predictor_68_face_landmarks.dat already exists.")
+
+# Download the .dat file if it doesn't exist
+download_dat_file()
 
 # Constants
 EYE_AR_THRESH = 0.25  # Eye aspect ratio threshold
 EYE_AR_CONSEC_FRAMES = 20  # Number of consecutive frames for sleep detection
-ALARM_DURATION = 2  # Duration in seconds to trigger alarm
 
 # Initialize dlib's face detector and facial landmark predictor
 detector = dlib.get_frontal_face_detector()
@@ -61,9 +79,7 @@ while True:
             if COUNTER >= EYE_AR_CONSEC_FRAMES:
                 if not ALARM_ON:
                     ALARM_ON = True
-                    print("ALERT: Nagitapn yako wahane Happeiiiiii!")
-                    mixer.music.play()
-                    # Play a sound or display a warning
+                    print("ALERT: Sleep detected!")
         else:
             COUNTER = 0
             ALARM_ON = False
